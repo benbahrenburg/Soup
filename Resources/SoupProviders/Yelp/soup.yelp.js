@@ -975,7 +975,8 @@ function formatToStandardReturn(results){
 			latitude : getCoordinate(results.businesses[iLoop],true),
 			longitude : getCoordinate(results.businesses[iLoop],false),
 			text : results.businesses[iLoop].snippet_text,
-			date_info:null
+			date_info : null,
+			raw_data : results.businesses[iLoop] //Add the raw ata provider property which is just the twitter record information
 		});	
 	}
 	

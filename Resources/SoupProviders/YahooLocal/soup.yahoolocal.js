@@ -130,7 +130,8 @@ function formatToStandardReturn(results){
 			latitude : data[iLoop].Latitude,
 			longitude : data[iLoop].Longitude,
 			text : null,
-			date_info:null
+			date_info : null,						
+			raw_data : data[iLoop] //Add the full raw form data returned by the search provider's native API
 		});	
 	}
 	

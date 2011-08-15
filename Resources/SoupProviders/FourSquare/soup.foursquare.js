@@ -158,7 +158,8 @@ function formatToStandardReturn(results){
 			 latitude : getCoordinates(data[iLoop].location,true),
 			 longitude : getCoordinates(data[iLoop].location,false),
 			 text : null,
-			 date_info:null
+			 date_info : null,
+			 raw_data : data[iLoop] //Add the full raw form data returned by the search provider's native API 
 		 });	
 	 }
 	

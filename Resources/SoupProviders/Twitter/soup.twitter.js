@@ -206,6 +206,8 @@ function formatToStandardReturn(apiResults,searchParameters){
 				record.longitude = searchParameters.longitude;	 	 	
 		 	 }
 
+			//Add the full raw form data returned by the search provider's native API
+			record.raw_data=data[iLoop];
 			outputResults.content.push(record);	
 				
 	 }
@@ -229,9 +231,9 @@ function doSearchWithPlace(places,searchParameters,mainCaller){
 		if (this.readyState == 4 && !done) {
 			var apiResults = JSON.parse(this.responseText);
 			done=true;
-			if(apiResults.errors){
+			if(apiResults.error){
 				results.success=false;
-				results.message=apiResults.errors[0].message;
+				results.message=apiResults.error[0].message;
 				mainCaller(results);
 				return;
 			}			
@@ -257,9 +259,9 @@ function doPlacesSearch(searchParameters,mainCaller){
 		if (this.readyState == 4 && !done) {
 			var apiResults = JSON.parse(this.responseText);
 			done=true;
-			if(apiResults.errors){
+			if(apiResults.error){
 				results.success=false;
-				results.message=apiResults.errors[0].message;
+				results.message=apiResults.error;
 				mainCaller(results);
 				return;
 			}
@@ -309,9 +311,9 @@ function doSearch(searchParameters,mainCaller){
 		if (this.readyState == 4 && !done) {
 			var apiResults = JSON.parse(this.responseText);
 			done=true;
-			if(apiResults.errors){
+			if(apiResults.error){
 				results.success=false;
-				results.message=apiResults.errors[0].message;
+				results.message=apiResults.error[0].message;
 				mainCaller(results);
 				return;
 			}

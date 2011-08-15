@@ -98,7 +98,8 @@ This method performs the search and provides a collection to the callback method
 		 latitude: latitude of the search result,
 		 longitude: longitude of the search result,
 		 text : description or other text to be displayed,
-		 date_info : if available date/time information associated with the search record
+		 date_info : if available date/time information associated with the search record,
+		 raw_data : the full raw form data returned by the search provider's native API 
 	 }
 
 *Missing values or those not supported by providers will be returned as null*
