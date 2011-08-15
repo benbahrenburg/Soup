@@ -90,10 +90,9 @@ var demo ={win:Ti.UI.currentWindow};
 			var myProviderSearchCriteria = twitter.buildSearchCriteria(mySearch);
 			
 			//Let's add a provider specific value
-			//This adds a level of accuracy that is specific to twitter
+			//This adds a radius in km that is specific to twitter
 			//The provider will add it into our query
-			//The full list is at https://dev.twitter.com/docs/api/1/get/geo/search
-			myProviderSearchCriteria.accuracy=500;
+			myProviderSearchCriteria.radius="1km";
 			
 			//We are now ready to search. We just pass in the criteria and a callback
 			twitter.searchContent(myProviderSearchCriteria,mySearchCallback);

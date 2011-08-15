@@ -121,6 +121,8 @@ function getBestPlaceType(places){
 
 function getCoordinates(apiResults){
 	var results = null;
+	var coordsAr=null;
+	//First we try the easy way. Twitter gives us a Geo Property
 	if((apiResults.geo!==undefined)&& (apiResults.geo!==null)){
 		if((apiResults.geo.coordinates!==undefined)&& (apiResults.geo.coordinates!==null)){
 			if(apiResults.geo.coordinates.length==2){
@@ -130,12 +132,45 @@ function getCoordinates(apiResults){
 				};
 			}
 		}
+	}else{
+		//If there isn't a Geo Property, then check the location property
+		if((apiResults.location!==undefined) && (apiResults.location!==null)){
+			//The location property is a mess so we will need to parse
+			//It looks like there can be anything before the : character
+			if((apiResults.location.indexOf(":")>-1)&&(apiResults.location.indexOf(":")>-1)){
+				var prefixPos = apiResults.location.indexOf(":") + 1;
+				//Make sure we don't generate any errors
+				if((prefixPos>apiResults.location.length)||(prefixPos===apiResults.location.length)){
+					return null;
+				}
+				var mashedCoords = safeTrim(apiResults.location.substring(prefixPos,apiResults.location.length));
+				if(mashedCoords.length===0){
+					return null;
+				}
+				coordsAr=mashedCoords.split(",");
+				if(coordsAr.length!==2){
+					return null;
+				}
+				var lat=safeTrim(coordsAr[0]);
+				var lng=safeTrim(coordsAr[1]);
+				//Make sure they are numbers, trust is low when we have to parse
+				if(IsNumeric(lat)&&IsNumeric(lng)){
+					results = {
+						latitude:lat,
+						longitude:lng
+					};						
+				}					
+			}
+		}
 	}
 	return results;
 };
+
+	
 function formatToStandardReturn(apiResults,searchParameters){
-	 var outputResults ={};
-	 var record={};
+	var outputResults ={};
+	var record={};
+	var coords = null;
 	if((apiResults.results===undefined)||(apiResults.results===null)||(apiResults.results.length===0)){
 		outputResults.success=false;
 		outputResults.message='No search results returned from Twitter';
@@ -156,21 +191,23 @@ function formatToStandardReturn(apiResults,searchParameters){
 				 phone : null,
 				 web : null,
 				 email : null,			
-				 site_link : 'https://twitter.com/' + data[iLoop].from_user,
+				 site_link : 'http://twitter.com/' + data[iLoop].from_user + '/status/' + data[iLoop].id_str,
 				 text : data[iLoop].text,
 				 date_info : data[iLoop].created_at
 			 };	
 		 
-		 	 var coords = getCoordinates(data[iLoop]);
+		 	 coords=getCoordinates(data[iLoop]);
+		 	 
 		 	 if(coords!==null){
 				record.latitude = coords.latitude;
 				record.longitude = coords.longitude;	 	 	
 		 	 }else{
 				record.latitude = searchParameters.latitude;
-				record.longitude = searchParameters.longitude;		 	 	
+				record.longitude = searchParameters.longitude;	 	 	
 		 	 }
 
-		outputResults.content.push(record);
+			outputResults.content.push(record);	
+				
 	 }
 	
 	 return outputResults;
@@ -245,12 +282,25 @@ function doPlacesSearch(searchParameters,mainCaller){
 	xhr.open('GET',query);
 	xhr.send();	
 };
+
 function doSearch(searchParameters,mainCaller){
 	var results = {success:false};
 	var query ="http://search.twitter.com/search.json?";
+	query += "geocode=" + searchParameters.latitude + ',' + searchParameters.longitude;
+	delete searchParameters.latitude; //Remove so this param wont be considered as part of queryStringify
+	delete searchParameters.longitude;//Remove so this param wont be considered as part of queryStringify	
+	if((searchParameters.radius!==undefined)&&(searchParameters.radius!==null)){
+		query+=',' + searchParameters.radius;
+		//Check if radius provided, if it is just a number make it km
+		if(IsNumeric(searchParameters.radius)){
+			query+='km';
+		}
+		delete searchParameters.radius;	//Remove so this param wont be considered as part of queryStringify
+	}	
+	//Build the rest of the parameters
 	var params = safeTrim(queryStringify(searchParameters));
 	if(params.length>0){
-		query+= params;
+		query+= '&' + params;
 	}
 
 	var done = false;
