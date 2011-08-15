@@ -47,11 +47,10 @@ var demo ={win:Ti.UI.currentWindow};
 	//To do this we're bringing in a small library to help
 	Ti.include('geo.js');
 	
-	//Bring in the Yahoo Local commonjs library
+	//Bring in the Twitter commonjs library
 	var twitter = require('SoupProviders/Twitter/soup.twitter');
 	
-	//We don't need any API Keys so we can go directly into the search
-	
+	//We don't need any API Keys so we can go directly into the search	
 	function mySearchCallback(results){
 		if(!results.success){
 			alert("Error encountered " + results.message);
