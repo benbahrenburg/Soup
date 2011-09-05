@@ -88,6 +88,7 @@ This method performs the search and provides a collection to the callback method
 	success : true/false this provides an indicator if there is an error,
 	message:  if there is a message this will tell us what it is,
 	content: {
+		 id: This is an unique int within the search results based on the order the results are returned
 		 name: This is the name of the search value,
 		 address: This is the address of the search value,
 		 image_url : Image Url to be displayed,

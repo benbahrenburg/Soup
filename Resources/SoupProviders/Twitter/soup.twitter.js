@@ -34,6 +34,7 @@
 //		message: if there is a message this will tell us what it is,
 // 		content:[
 // 			{
+//				id: This is an unique int within the search results based on the order the results are returned
 // 				name: This is the name of the search value,
 // 				address: This is the address of the search value,
 // 				image_url : Image Url to be displayed,
@@ -185,6 +186,7 @@ function formatToStandardReturn(apiResults,searchParameters){
 	 for (iLoop=0;iLoop < iLength;iLoop++){
 		 	
 			 record={
+			 	 id:iLoop,
 				 name: data[iLoop].from_user,
 				 address:null,
 				 image_url:data[iLoop].profile_image_url,

@@ -46,6 +46,7 @@
 //		message: if there is a message this will tell us what it is,
 // 		content:[
 // 			{
+//				id: This is an unique int within the search results based on the order the results are returned
 // 				name: This is the name of the search value,
 // 				address: This is the address of the search value,
 // 				image_url : Image Url to be displayed,
@@ -965,6 +966,7 @@ function formatToStandardReturn(results){
 	outputResults.content=[];
 	for (iLoop=0;iLoop < iLength;iLoop++){
 		outputResults.content.push({
+			id:iLoop,
 			name: results.businesses[iLoop].name,
 			address: getAddress(results.businesses[iLoop]),
 			image_url:results.businesses[iLoop].image_url,
@@ -1215,6 +1217,6 @@ exports.searchContent=function(searchParameters,callback){
 	xhr.open('GET',url);
 	xhr.send();	
 };
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
 //	PUBLIC EXPORTS END HERE
-//@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
