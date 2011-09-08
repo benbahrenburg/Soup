@@ -97,12 +97,56 @@ function buildPlacesUrl(searchParameters){
 	}
 	return baseUrl;
 };
+
+function midPoint(lat1, lon1, lat2,lon2){
+		//Source Movable Type Scripts
+		//http://www.movable-type.co.uk/scripts/latlong.html
+		var Bx = Math.cos(lat2) * Math.cos(lon1);
+		var By = Math.cos(lat2) * Math.sin(lon1);
+		var lat3 = Math.atan2(Math.sin(lat1)+Math.sin(lat2),
+                   Math.sqrt( (Math.cos(lat1)+Bx)*(Math.cos(lat1)+Bx) + By*By) ); 
+		var lon3 = lon1 + Math.atan2(By, Math.cos(lat1) + Bx);
+		return {
+			lat:lat3,
+			lng:lon3
+		};
+};
+function getPlaceCoord(place){
+	var coords = null;
+	if((place.contained_within!==undefined) && 
+	   (place.contained_within!==null)){
+	   	if(place.contained_within.length>0){
+	   	 var box = place.contained_within[0].bounding_box;
+	   	 if((box.coordinates!==undefined) && (box.coordinates!==null)){
+		  	if(box.coordinates.length>0){
+		  		var boxCoords = box.coordinates[0];
+		  		if(boxCoords.length===4){
+					var pointOne = (boxCoords[0] + '').split(',');
+					var pointTwo = (boxCoords[1] + '').split(',');
+								
+					return {
+						lat:((parseFloat(pointOne[1])+parseFloat(pointTwo[1]))/2),
+						lng:((parseFloat(pointOne[0])+parseFloat(pointTwo[0]))/2)
+					};		  			
+		  		}	  		
+		  	}
+		   }
+	   	}
+	 }
+	return coords;
+};
 function findFirstPlaceType(places,placeType){
 	var iLength = places.result.places.length;
-	var placeFound = null;
+	var placeFound = {found:false,id:null,lat:null,lng:null};
 	for (var iLoop=0;iLoop < iLength;iLoop++){
 		if(places.result.places[iLoop].place_type.toUpperCase()===placeType.toUpperCase()){
-			placeFound = places.result.places[iLoop].id;
+			placeFound.found=true;
+			placeFound.id = places.result.places[iLoop].id;
+			var coords=getPlaceCoord(places.result.places[iLoop]);
+			if(coords!==null){
+				placeFound.lat=coords.lat;
+				placeFound.lng=coords.lng;
+			}
 			break;
 		}
 	}
@@ -111,11 +155,14 @@ function findFirstPlaceType(places,placeType){
 };
 function getBestPlaceType(places){
 	var place = findFirstPlaceType(places,'NEIGHBORHOOD');
-	if(place===null){
+	if(!place.found){
 		place = findFirstPlaceType(places,'CITY');
 	}
-	if(place===null){
+	if(!place.found){
 		place = findFirstPlaceType(places,'ADMIN');
+	}
+	if(!place.found){
+		place=null;
 	}
 	return place;
 };
@@ -220,13 +267,21 @@ function formatToStandardReturn(apiResults,searchParameters){
 function doSearchWithPlace(places,searchParameters,mainCaller){
 	var results = {success:false};
 	var place = getBestPlaceType(places);
-	if(getBestPlaceType===null){
+	if(!place.found){
 		results.success=false;
 		results.message= "Unable to find a twitter place nearby. Try entering a search term";
 		mainCaller(results);
 		return;
 	}
-	var query = "http://search.twitter.com/search.json?q=place%3A"+place;	
+	//Update the search params with the place coordinates
+	if((place.lat!==null)&& (place.lat!==null)){
+		if((!isNaN(place.lat))&& (!isNaN(place.lat))){
+			searchParameters.latitude=place.lat;
+			searchParameters.longitude=place.lng;			
+		}	
+	}
+
+	var query = "http://search.twitter.com/search.json?q=place%3A"+place.id;	
 	var done = false;
 	var xhr = Ti.Network.createHTTPClient();
 	xhr.onload = function(){
@@ -254,7 +309,8 @@ function doSearchWithPlace(places,searchParameters,mainCaller){
 };
 function doPlacesSearch(searchParameters,mainCaller){
 	var results = {success:false};
-	var query = buildPlacesUrl(searchParameters);
+	var qryParam = JSON.parse(JSON.stringify(searchParameters));
+	var query = buildPlacesUrl(qryParam);
 	var done = false;
 	var xhr = Ti.Network.createHTTPClient();
 	xhr.onload = function(){
@@ -290,19 +346,20 @@ function doPlacesSearch(searchParameters,mainCaller){
 function doSearch(searchParameters,mainCaller){
 	var results = {success:false};
 	var query ="http://search.twitter.com/search.json?";
-	query += "geocode=" + searchParameters.latitude + ',' + searchParameters.longitude;
-	delete searchParameters.latitude; //Remove so this param wont be considered as part of queryStringify
-	delete searchParameters.longitude;//Remove so this param wont be considered as part of queryStringify	
-	if((searchParameters.radius!==undefined)&&(searchParameters.radius!==null)){
-		query+=',' + searchParameters.radius;
+	var qryParam = JSON.parse(JSON.stringify(searchParameters));
+	query += "geocode=" + qryParam.latitude + ',' + qryParam.longitude;
+	delete qryParam.latitude; //Remove so this param wont be considered as part of queryStringify
+	delete qryParam.longitude;//Remove so this param wont be considered as part of queryStringify	
+	if((qryParam.radius!==undefined)&&(qryParam.radius!==null)){
+		query+=',' + qryParam.radius;
 		//Check if radius provided, if it is just a number make it km
-		if(IsNumeric(searchParameters.radius)){
+		if(IsNumeric(qryParam.radius)){
 			query+='km';
 		}
-		delete searchParameters.radius;	//Remove so this param wont be considered as part of queryStringify
+		delete qryParam.radius;	//Remove so this param wont be considered as part of queryStringify
 	}	
 	//Build the rest of the parameters
-	var params = safeTrim(queryStringify(searchParameters));
+	var params = safeTrim(queryStringify(qryParam));
 	if(params.length>0){
 		query+= '&' + params;
 	}
